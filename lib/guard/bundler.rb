@@ -34,7 +34,7 @@ module Guard
     end
 
     def gemfile
-      cli_args[:custom_gemfile] ||= "Gemfile"
+      custom_gemfile || "Gemfile"
     end
 
     private
@@ -60,12 +60,13 @@ module Guard
     end
 
     def bundle_check
-      gemfile_lock_mtime = File.exists?('Gemfile.lock') ? File.mtime('Gemfile.lock') : nil
+      gemfile_lock_mtime = File.exists?(lockfile) ? File.mtime(lockfile) : nil
       ::Bundler.with_clean_env do
+        ENV["BUNDLE_GEMFILE"] = custom_gemfile if custom_gemfile
         `bundle check`
       end
       return false unless $? == 0
-      if gemfile_lock_mtime && gemfile_lock_mtime == File.mtime('Gemfile.lock')
+      if gemfile_lock_mtime && gemfile_lock_mtime == File.mtime(lockfile)
         :bundle_already_up_to_date
       else
         :bundle_installed_using_local_gems
@@ -80,6 +81,10 @@ module Guard
       $? == 0 ? :bundle_installed : false
     end
 
+    def custom_gemfile
+      cli_args[:custom_gemfile]
+    end
+
     def cli_args
       cli_args = {}
 
@@ -91,6 +96,10 @@ module Guard
 
       parser.parse(options[:cli])
       cli_args
+    end
+
+    def lockfile
+      "#{gemfile}.lock"
     end
   end
 end
