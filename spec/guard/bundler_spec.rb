@@ -123,4 +123,19 @@ RSpec.describe Guard::Bundler do
 
   end
 
+  describe "gemfile" do
+    context 'no custom gemfile is set' do
+      it "returns 'Gemfile'" do
+        expect(subject.gemfile).to eq "Gemfile"
+      end
+    end
+
+    context 'a custom gemfile is specified with a command line argument' do
+      subject { Guard::Bundler.new(cli: '--gemfile=MyGemfile') }
+      it "returns the specified gemfile" do
+        expect(subject.gemfile).to eq "MyGemfile"
+      end
+    end
+  end
+
 end

@@ -3,6 +3,8 @@ require 'bundler'
 
 require "guard/compat/plugin"
 
+require "optparse"
+
 module Guard
   class Bundler < Plugin
     autoload :Notifier, 'guard/bundler/notifier'
@@ -29,6 +31,10 @@ module Guard
 
     def cli?
       !!options[:cli]
+    end
+
+    def gemfile
+      cli_args[:custom_gemfile] ||= "Gemfile"
     end
 
     private
@@ -72,6 +78,19 @@ module Guard
         system("bundle install#{" #{options[:cli]}" if options[:cli]}")
       end
       $? == 0 ? :bundle_installed : false
+    end
+
+    def cli_args
+      cli_args = {}
+
+      parser = OptionParser.new do |parser|
+        parser.on("--gemfile=GEMFILE") do |file_name|
+          cli_args[:custom_gemfile] = file_name
+        end
+      end
+
+      parser.parse(options[:cli])
+      cli_args
     end
   end
 end
